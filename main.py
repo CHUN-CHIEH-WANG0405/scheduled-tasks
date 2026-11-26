@@ -6,33 +6,62 @@
 # See the solution video in the 100 Days of Python Course for explainations.
 
 
-from datetime import datetime
-import pandas
-import random
+##################### Extra Hard Starting Project ######################
+
+# 1. Update the birthdays.csv
+
+# 2. Check if today matches a birthday in the birthdays.csv
+
+# 3. If step 2 is true, pick a random letter from letter templates and replace the [NAME] with the person's actual name from birthdays.csv
+
+# 4. Send the letter generated in step 3 to that person's email address.
+
+
+import pandas as pd
 import smtplib
+import datetime as dt
+import random
 import os
 
-# import os and use it to get the Github repository secrets
-MY_EMAIL = os.environ.get("MY_EMAIL")
-MY_PASSWORD = os.environ.get("MY_PASSWORD")
+now_datetime = dt.datetime.now()
+now_month = now_datetime.month
+now_day = now_datetime.day
+my_email = os.environ.get("my_email")
+my_email_password = os.environ.get("my_email_password")
+all_wish_letter = []
 
-today = datetime.now()
-today_tuple = (today.month, today.day)
+with open("letter_templates/letter_1.txt") as letter_1_file:
+    letter1_data = letter_1_file.read().splitlines()
+    all_wish_letter.append(letter1_data)
 
-data = pandas.read_csv("birthdays.csv")
-birthdays_dict = {(data_row["month"], data_row["day"])                  : data_row for (index, data_row) in data.iterrows()}
-if today_tuple in birthdays_dict:
-    birthday_person = birthdays_dict[today_tuple]
-    file_path = f"letter_templates/letter_{random.randint(1, 3)}.txt"
-    with open(file_path) as letter_file:
-        contents = letter_file.read()
-        contents = contents.replace("[NAME]", birthday_person["name"])
+with open("letter_templates/letter_2.txt") as letter_2_file:
+    letter2_data = letter_2_file.read().splitlines()
+    all_wish_letter.append(letter2_data)
 
-    with smtplib.SMTP("YOUR EMAIL PROVIDER SMTP SERVER ADDRESS") as connection:
-        connection.starttls()
-        connection.login(MY_EMAIL, MY_PASSWORD)
-        connection.sendmail(
-            from_addr=MY_EMAIL,
-            to_addrs=birthday_person["email"],
-            msg=f"Subject:Happy Birthday!\n\n{contents}"
-        )
+with open("letter_templates/letter_3.txt") as letter_3_file:
+    letter3_data = letter_3_file.read().splitlines()
+    all_wish_letter.append(letter3_data)
+
+
+with open("birthdays.csv") as birthdays_file:
+    data = pd.read_csv(birthdays_file) #data為DataFrame格式
+
+    for (index, row) in data.iterrows():
+        if row['month'] == now_month and row['day'] == now_day:
+            receipt_email = row['email']
+            receipt_name = row['name']
+            wish_letter = random.choice(all_wish_letter)
+            update_name = [text.replace("[NAME]", receipt_name) for text in wish_letter]
+            final_wish_letter = "\n".join(update_name)
+            print(final_wish_letter)
+
+            with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+                connection.starttls()
+                connection.login(user = my_email, password = my_email_password)
+                connection.sendmail(
+                    from_addr = my_email,
+                    to_addrs = receipt_email,
+                    msg = f'Subject: Happy Birthday {receipt_name}\n\n{final_wish_letter}\nDate at: {now_datetime.strftime("%Y/%m/%d %H:%M:%S")}'
+                )
+
+
