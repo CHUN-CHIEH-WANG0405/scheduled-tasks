@@ -14,7 +14,8 @@ on:
     # ║                                                                ║
     # ║  Use https://time.is/UTC to find your local time in UTC       ║
     # ╚═══════════════════════════════════════════════════════════════╝
-    - cron: '0 7 * * *'
+    - cron: '10 15 * * *'
+      timezone: "Asia/Taipei"
 
   # This adds a "Run workflow" button so you can test manually
   workflow_dispatch:
@@ -31,6 +32,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
 
       - name: Install dependencies
         run: |
